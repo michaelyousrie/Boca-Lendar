@@ -28,7 +28,6 @@ h1 {
     background: #fff;
     border-radius: 14px;
     box-shadow: 0 4px 24px #183e6904;
-    overflow: hidden;
 }
 .schedule-toolbar {
     display: flex;
@@ -52,20 +51,9 @@ h1 {
     align-items: center;
     gap: 13px;
 }
-.timezone-select {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #526982;
-}
-.timezone-select select {
-    border: 0;
-    max-width: 155px;
-    font-size: 11px;
-    background: transparent;
-    color: #536b87;
-    padding: 8px 0;
-    cursor: pointer;
+.schedule-controls .timezone-select {
+    width: 220px;
+    min-width: 0;
 }
 .week-strip {
     display: grid;

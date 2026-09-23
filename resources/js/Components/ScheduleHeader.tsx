@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight, Globe2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { addDays, calendarDate, dateLabel } from '../lib/dates';
+import TimezoneSelect from './TimezoneSelect';
 
 type Props = {
     date: string;
@@ -19,19 +20,12 @@ export default function ScheduleHeader({ date, today, timezone, timezones, navig
                     <h2>{dateLabel(date, { month: 'long', year: 'numeric' })}</h2>
                 </div>
                 <div className="schedule-controls">
-                    <label className="timezone-select">
-                        <Globe2 size={15} />
-                        <span className="sr-only">Display timezone</span>
-                        <select
-                            aria-label="Display timezone"
-                            value={timezone}
-                            onChange={(event) => navigate(date, event.target.value)}
-                        >
-                            {timezones.map((zone) => (
-                                <option key={zone}>{zone}</option>
-                            ))}
-                        </select>
-                    </label>
+                    <TimezoneSelect
+                        label="Display timezone"
+                        value={timezone}
+                        timezones={timezones}
+                        onChange={(zone) => navigate(date, zone)}
+                    />
                     <div className="button-pair bordered">
                         <button
                             className="icon-button"

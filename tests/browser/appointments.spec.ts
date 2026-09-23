@@ -31,7 +31,9 @@ async function fillBooking(page: Page, title = 'Discovery session') {
     const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
     await dialog.getByLabel('Date', { exact: true }).fill(tomorrow);
     await dialog.getByLabel('Start time').fill('14:00');
-    await dialog.getByLabel('Appointment timezone').selectOption('UTC');
+    await dialog.getByRole('combobox', { name: 'Appointment timezone', exact: true }).click();
+    await dialog.getByRole('combobox', { name: 'Appointment timezone', exact: true }).fill('UTC');
+    await dialog.getByRole('option', { name: 'UTC', exact: true }).click();
 }
 
 async function expandCancelled(page: Page) {
@@ -48,6 +50,39 @@ function googleFixture(mode: string, email?: string) {
         stdio: 'pipe',
     });
 }
+
+test('searches timezones in the toolbar and booking dialog', async ({ page, isMobile }, testInfo) => {
+    await register(page, isMobile);
+    const displayTimezone = page.getByRole('combobox', { name: 'Display timezone', exact: true });
+    await displayTimezone.click();
+    await displayTimezone.fill('new york');
+    await expect(page.getByRole('option', { name: 'America/New York', exact: true })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('timezone-toolbar.png') });
+    await displayTimezone.press('Enter');
+    await expect(page).toHaveURL(/timezone=America%2FNew_York/);
+    await expect(displayTimezone).toHaveValue('America/New York');
+
+    await page.getByRole('button', { name: 'New appointment', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    const timezone = dialog.getByRole('combobox', { name: 'Appointment timezone', exact: true });
+    await timezone.click();
+    await timezone.fill('not a timezone');
+    await expect(dialog.getByRole('status')).toContainText('No timezones found');
+    await timezone.press('Escape');
+    await expect(dialog).toBeVisible();
+    await expect(timezone).toHaveValue('America/New York');
+    await timezone.click();
+    await timezone.fill('cairo');
+    await page.screenshot({ path: testInfo.outputPath('timezone-booking.png') });
+    expect((await new AxeBuilder({ page }).include('.dialog').analyze()).violations).toEqual([]);
+    const option = dialog.getByRole('option', { name: 'Africa/Cairo', exact: true });
+    if (isMobile) await option.tap();
+    else await option.click();
+    await expect(timezone).toHaveValue('Africa/Cairo');
+    await expect(dialog.getByRole('listbox')).not.toBeVisible();
+    await expect(dialog).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
 
 test('register, book locally, reject a conflict, cancel immediately and sign out', async ({
     page,

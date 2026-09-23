@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import Dialog from './Dialog';
 import Field from './Field';
+import TimezoneSelect from './TimezoneSelect';
 import { preferredCalendar } from '../lib/calendars';
 import { bookingDefaults, bookingTimeError, localDateTime } from '../lib/bookingTime';
 import type { Appointment, Calendar } from '../types';
@@ -205,11 +206,20 @@ export default function BookingForm({
                     </Field>
                 </div>
                 <Field id="timezone" label="Appointment timezone" error={form.errors.timezone}>
-                    <select {...fieldProps('timezone')}>
-                        {timezones.map((zone) => (
-                            <option key={zone}>{zone}</option>
-                        ))}
-                    </select>
+                    <TimezoneSelect
+                        id="timezone"
+                        label="Appointment timezone"
+                        value={form.data.timezone}
+                        timezones={timezones}
+                        placement="top"
+                        disabled={form.processing}
+                        invalid={Boolean(form.errors.timezone)}
+                        describedBy={form.errors.timezone ? 'timezone-error' : undefined}
+                        onChange={(zone) => {
+                            form.setData('timezone', zone);
+                            form.clearErrors('date', 'start_time');
+                        }}
+                    />
                 </Field>
                 {(form.errors.request_key || form.errors.revision) && (
                     <p className="field-error" role="alert">

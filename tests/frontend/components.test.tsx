@@ -171,7 +171,9 @@ describe('booking form', () => {
         await userEvent.type(screen.getByLabelText('Appointment title'), 'New consultation');
         await userEvent.type(screen.getByLabelText('Customer name'), 'Sam');
         await userEvent.type(screen.getByLabelText('Customer email'), 'sam@example.com');
-        await userEvent.selectOptions(screen.getByLabelText('Appointment timezone'), 'Africa/Cairo');
+        await userEvent.click(screen.getByLabelText('Appointment timezone'));
+        await userEvent.type(screen.getByLabelText('Appointment timezone'), 'cairo');
+        await userEvent.click(screen.getByRole('option', { name: 'Africa/Cairo' }));
         fireEvent.submit(screen.getByRole('button', { name: 'Reserve appointment' }).closest('form')!);
         expect(visits.post).toHaveBeenCalledWith(
             '/appointments',

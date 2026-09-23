@@ -38,9 +38,8 @@ describe('future booking form', () => {
         render(<BookingForm {...props} />);
         const date = screen.getByLabelText('Date');
         const time = screen.getByLabelText('Start time');
-        fireEvent.change(screen.getByLabelText('Appointment timezone'), {
-            target: { value: 'Africa/Cairo' },
-        });
+        fireEvent.click(screen.getByLabelText('Appointment timezone'));
+        fireEvent.click(screen.getByRole('option', { name: 'Africa/Cairo' }));
         expect(date).toHaveAttribute('min', '2026-09-24');
         expect(date).toBeInvalid();
         fireEvent.change(date, { target: { value: '2026-09-24' } });

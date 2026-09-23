@@ -176,7 +176,9 @@ describe('appointment workspace', () => {
             { date: '2026-10-14', timezone: 'UTC' },
             expect.not.objectContaining({ headers: expect.anything() }),
         );
-        await userEvent.selectOptions(screen.getByLabelText('Display timezone'), 'Africa/Cairo');
+        await userEvent.click(screen.getByLabelText('Display timezone'));
+        await userEvent.type(screen.getByLabelText('Display timezone'), 'cairo');
+        await userEvent.click(screen.getByRole('option', { name: 'Africa/Cairo' }));
         expect(visits.get).toHaveBeenLastCalledWith(
             '/appointments',
             { date: '2026-10-12', timezone: 'Africa/Cairo' },

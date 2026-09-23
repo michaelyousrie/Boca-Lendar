@@ -1,0 +1,16 @@
+export const browserEnvironment = {
+    APP_ENV: 'testing',
+    APP_DEBUG: 'true',
+    APP_KEY: `base64:${Buffer.alloc(32, 1).toString('base64')}`,
+    APP_URL: 'http://127.0.0.1:8011',
+    DB_CONNECTION: 'pgsql',
+    DB_HOST: process.env.DB_HOST || '127.0.0.1',
+    DB_PORT: process.env.DB_PORT || '55432',
+    DB_DATABASE: 'boca_e2e',
+    DB_URL: '',
+    DB_USERNAME: process.env.DB_USERNAME || 'boca',
+    DB_PASSWORD: process.env.DB_PASSWORD || 'boca',
+    QUEUE_CONNECTION: 'database',
+    CACHE_STORE: 'database',
+    SESSION_DRIVER: 'database',
+};

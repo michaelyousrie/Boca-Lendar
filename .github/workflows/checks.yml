@@ -1,0 +1,73 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: boca_test
+          POSTGRES_USER: boca
+          POSTGRES_PASSWORD: boca
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U boca -d boca_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: boca
+      DB_PASSWORD: boca
+      XDEBUG_MODE: coverage
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, mbstring, intl
+          coverage: xdebug
+          tools: composer:v2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: |
+          cp .env.example .env
+          composer install --no-interaction --prefer-dist
+          php artisan key:generate
+          npm ci
+      - name: Prepare browser database
+        env:
+          PGPASSWORD: boca
+        run: psql -h 127.0.0.1 -U boca -d boca_test -c 'CREATE DATABASE boca_e2e'
+      - name: Check formatting and build
+        run: |
+          vendor/bin/pint --test
+          npm run format:check
+          npm run build
+      - name: Test backend with full line coverage
+        run: composer test:coverage
+      - name: Test frontend with full coverage
+        run: npm run test:coverage
+      - name: Test desktop, mobile and accessibility
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+      - name: Check dependency advisories
+        run: |
+          composer audit
+          npm audit

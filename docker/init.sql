@@ -1,0 +1,2 @@
+CREATE DATABASE boca_test;
+CREATE DATABASE boca_e2e;

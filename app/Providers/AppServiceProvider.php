@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Calendar\CalendarProvider;
+use App\Calendar\GoogleCalendar;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Request;
@@ -12,6 +14,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(CalendarProvider::class, GoogleCalendar::class);
     }
 
     public function boot(): void

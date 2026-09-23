@@ -1,0 +1,71 @@
+.auth-layout {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+}
+.auth-form-panel {
+    width: 100%;
+    max-width: 440px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: clamp(24px, 5vw, 40px);
+}
+.auth-brand {
+    margin-bottom: 36px;
+}
+.auth-brand .brand {
+    font-size: 29px;
+}
+.auth-form {
+    width: 100%;
+    max-width: 360px;
+    margin: auto;
+}
+.auth-form h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -1.2px;
+    margin: 0;
+}
+.auth-form > p {
+    font-size: 12px;
+    color: #526982;
+    line-height: 1.8;
+}
+.auth-form form {
+    margin-top: 30px;
+}
+.auth-form .field {
+    margin-bottom: 21px;
+}
+.auth-form .field input {
+    min-height: 47px;
+}
+.auth-form .button {
+    margin-top: 12px;
+    min-height: 46px;
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #526982;
+    font-size: 11px;
+    cursor: pointer;
+}
+.checkbox-label input {
+    accent-color: var(--blue);
+    width: 14px;
+    height: 14px;
+    margin: 0;
+}
+.auth-form .auth-switch {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 11px;
+}
+.auth-switch a {
+    font-weight: 700;
+}

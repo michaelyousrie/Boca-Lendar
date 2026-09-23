@@ -1,0 +1,313 @@
+.appointment-row {
+    display: flex;
+    align-items: stretch;
+    gap: 19px;
+    margin-bottom: 16px;
+}
+.appointment-row:last-child {
+    margin-bottom: 0;
+}
+.appointment-time {
+    width: 66px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 19px;
+}
+.appointment-time time {
+    font-weight: 700;
+    font-size: 11px;
+    display: block;
+}
+.appointment-time > span {
+    display: block;
+    color: #526982;
+    font-size: 11px;
+    margin-top: 5px;
+}
+.appointment-card {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid #e2e9f2;
+    border-left: 3px solid #4e86e8;
+    border-radius: 9px;
+    padding: 17px 19px 0;
+    background: white;
+}
+.appointment-row:not(.cancelled):nth-child(3n + 2) .appointment-card {
+    border-left-color: #4e9c94;
+}
+.appointment-row:not(.cancelled):nth-child(3n + 3) .appointment-card {
+    border-left-color: #a487be;
+}
+.appointment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+.appointment-calendar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #526982;
+    margin-bottom: 6px;
+}
+.calendar-dot {
+    width: 5px;
+    height: 5px;
+    display: inline-block;
+    background: #5d8dda;
+    border-radius: 50%;
+}
+.appointment-card h3 {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.25px;
+    overflow-wrap: anywhere;
+}
+.appointment-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+.cancelled-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: #f8e8ea;
+    color: #923d4b;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #526982;
+    white-space: nowrap;
+}
+.customer {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    margin: 15px 0 17px;
+}
+.customer-avatar {
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    background: #eff3f9;
+    color: #526982;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+.customer > div {
+    min-width: 0;
+}
+.customer strong {
+    font-size: 11px;
+    display: block;
+    font-weight: 700;
+}
+.customer > div > span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #526982;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+}
+.customer svg {
+    flex-shrink: 0;
+}
+.appointment-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eef2f7;
+    padding: 9px 0;
+}
+.sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.sync-status svg {
+    flex-shrink: 0;
+}
+.success {
+    color: #21796f;
+}
+.waiting {
+    color: #8b641c;
+}
+.danger {
+    color: #ae3933;
+}
+.appointment-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.appointment-actions .text-button {
+    font-size: 11px;
+}
+.cancel-button {
+    color: #526982;
+}
+.sync-error {
+    font-size: 11px;
+    line-height: 1.7;
+    padding: 0 0 11px;
+    color: #986325;
+}
+.cancelled .appointment-card {
+    background: #f5f6f8;
+    border-color: #cbd2dc;
+    border-style: dashed;
+    border-left: 3px solid #a7b0be;
+}
+.cancelled h3 {
+    color: #5e6b7b;
+    text-decoration: line-through;
+    text-decoration-color: #8793a3;
+}
+.cancelled .appointment-time {
+    color: #5e6b7b;
+    text-decoration: line-through;
+}
+.cancelled .calendar-dot {
+    background: #8793a3;
+}
+.cancelled .sync-status.success {
+    color: #5e6b7b;
+}
+.cancelled-appointments {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+}
+.cancelled-appointments:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+.cancelled-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    cursor: pointer;
+    list-style: none;
+    color: var(--muted);
+}
+.cancelled-heading::-webkit-details-marker {
+    display: none;
+}
+.cancelled-heading > svg {
+    margin-left: auto;
+}
+.cancelled-heading:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+.cancelled-appointments details[open] > .cancelled-heading {
+    margin-bottom: 16px;
+}
+.cancelled-appointments details[open] > .cancelled-heading > svg {
+    transform: rotate(180deg);
+}
+.cancelled-heading h2 {
+    font-size: 13px;
+    font-weight: 700;
+}
+.cancelled-heading > span {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #f0f3f7;
+    font-size: 11px;
+}
+.notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin: -9px 0 20px;
+    border: 1px solid #d5e9e4;
+    border-radius: 8px;
+    background: #f0f9f6;
+    color: #277362;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.notice svg {
+    flex-shrink: 0;
+}
+.notice.error {
+    background: #fff2ef;
+    border-color: #f1d9d4;
+    color: #a23e30;
+}
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 350px;
+    text-align: center;
+    padding: 30px 20px;
+}
+.empty-calendar {
+    display: grid;
+    place-items: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 22px;
+    background: #edf3fd;
+    color: #526982;
+    transform: rotate(-5deg);
+    margin-bottom: 22px;
+}
+.empty-state h3 {
+    font-size: 20px;
+    letter-spacing: -0.6px;
+    margin-top: 15px;
+}
+
+.event-dates {
+    font-size: 11px;
+    color: #526982;
+}
+.event-dates {
+    margin-top: 7px;
+}
+.appointment-time .all-day-label {
+    color: var(--teal);
+    font-weight: 700;
+    margin: 0;
+}
+.event-load-error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 7px;
+    background: #fff6ec;
+    color: #7d501c;
+    font-size: 12px;
+}

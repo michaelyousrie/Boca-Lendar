@@ -1,0 +1,146 @@
+.agenda {
+    flex: 1;
+    min-width: 0;
+    padding: 37px 40px 20px;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+.page-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 29px;
+}
+h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1.4px;
+}
+.heading-dot {
+    color: var(--blue);
+}
+.new-appointment {
+    margin-top: 0;
+}
+.schedule {
+    border: 1px solid #e1e8f2;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px #183e6904;
+    overflow: hidden;
+}
+.schedule-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 23px 25px 22px;
+}
+.schedule-date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.schedule-date h2 {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+}
+.schedule-controls {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+.timezone-select {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #526982;
+}
+.timezone-select select {
+    border: 0;
+    max-width: 155px;
+    font-size: 11px;
+    background: transparent;
+    color: #536b87;
+    padding: 8px 0;
+    cursor: pointer;
+}
+.week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 25px 24px;
+    border-bottom: 1px solid var(--line);
+}
+.week-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 13px 5px 9px;
+    border: 1px solid transparent;
+    background: #f7f9fc;
+    border-radius: 10px;
+}
+.week-day > span:first-child {
+    font-size: 11px;
+    color: #526982;
+}
+.week-day strong {
+    font-size: 27px;
+    letter-spacing: -0.8px;
+    font-weight: 600;
+}
+.week-day .day-marker {
+    font-size: 11px;
+    height: 14px;
+}
+.week-day .today-marker {
+    font-weight: 700;
+    color: var(--blue);
+}
+.week-day:hover {
+    border-color: #c0d4f8;
+    background: #edf3fd;
+}
+.week-day.selected {
+    background: var(--blue);
+    color: white;
+    box-shadow: 0 4px 7px #145be026;
+}
+.week-day.selected > span {
+    color: #fff;
+}
+.day-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 26px 19px;
+}
+.day-heading > div:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.day-heading h2 {
+    font-size: 13px;
+    font-weight: 800;
+}
+.day-heading > div > span {
+    font-size: 11px;
+    color: #526982;
+}
+.appointments-list {
+    padding: 2px 25px 26px;
+}
+
+.refresh-events {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}

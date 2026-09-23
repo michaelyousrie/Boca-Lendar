@@ -1,0 +1,384 @@
+.mobile-calendar-toggle,
+.mobile-signout {
+    display: none;
+}
+.spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@media (min-width: 1600px) {
+    .agenda {
+        padding-top: 48px;
+    }
+    .page-heading {
+        margin-bottom: 38px;
+    }
+}
+@media (max-width: 1200px) {
+    .agenda {
+        padding: 30px 24px 16px;
+    }
+    .sidebar {
+        width: 255px;
+        padding: 28px 18px;
+    }
+    .schedule-toolbar {
+        flex-wrap: wrap;
+    }
+    .week-strip {
+        gap: 5px;
+    }
+    .topbar {
+        padding: 0 25px;
+    }
+}
+@media (max-width: 1000px) {
+    .nav-rail {
+        width: 60px;
+    }
+    .app-body {
+        margin-left: 60px;
+        width: calc(100% - 60px);
+    }
+    .sidebar {
+        width: 235px;
+        padding: 26px 15px;
+    }
+    .month-dates button,
+    .month-dates > span {
+        width: 26px;
+        height: 29px;
+    }
+    .schedule-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .day-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .appointment-row {
+        gap: 12px;
+    }
+    .appointment-time {
+        width: 60px;
+    }
+    .agenda {
+        padding: 26px 20px;
+    }
+    .page-heading {
+        align-items: flex-start;
+    }
+    .new-appointment {
+        font-size: 11px;
+        padding: 10px;
+    }
+    .page-heading h1 {
+        font-size: 28px;
+    }
+    .appointment-card {
+        padding: 14px 14px 0;
+    }
+}
+@media (max-width: 800px) {
+    .nav-rail {
+        display: none;
+    }
+    .app-body {
+        margin: 0;
+        width: 100%;
+    }
+    .topbar {
+        height: 72px;
+        padding: 0 20px;
+    }
+    .user-name {
+        display: none;
+    }
+    .topbar-user {
+        gap: 9px;
+    }
+    .mobile-signout {
+        display: inline-flex;
+    }
+    .brand {
+        font-size: 27px;
+    }
+    .workspace {
+        flex-direction: column;
+    }
+    .sidebar {
+        display: none;
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        grid-template-columns: 225px 1fr;
+        gap: 30px;
+        padding: 25px;
+    }
+    .sidebar.mobile-open {
+        display: grid;
+    }
+    .calendar-panel {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
+    }
+    .month-dates button,
+    .month-dates > span {
+        width: 29px;
+    }
+    .agenda {
+        padding: 28px 22px 12px;
+        width: 100%;
+    }
+    .mobile-calendar-toggle {
+        display: inline-flex;
+        margin-bottom: 23px;
+        font-size: 11px;
+        min-height: 36px;
+        padding: 8px 12px;
+    }
+    .page-heading {
+        margin-bottom: 18px;
+    }
+    .schedule-controls {
+        width: auto;
+    }
+    .day-heading {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+@media (max-width: 540px) {
+    .topbar {
+        padding: 0 16px;
+    }
+    .user-avatar {
+        display: none;
+    }
+    .agenda {
+        padding: 25px 13px 10px;
+    }
+    .page-heading h1 {
+        font-size: 25px;
+    }
+    .new-appointment {
+        padding: 10px 11px;
+        min-height: 39px;
+        gap: 5px;
+        font-size: 11px;
+        margin-top: 0;
+    }
+    .new-appointment svg {
+        width: 16px;
+    }
+    .schedule {
+        border-radius: 11px;
+    }
+    .schedule-toolbar {
+        padding: 18px 15px 15px;
+        gap: 13px;
+    }
+    .schedule-controls {
+        width: 100%;
+    }
+    .schedule-date h2 {
+        font-size: 14px;
+    }
+    .week-strip {
+        padding: 0 12px 17px;
+        gap: 4px;
+    }
+    .week-day {
+        padding: 10px 2px 6px;
+        border-radius: 7px;
+        gap: 5px;
+    }
+    .week-day strong {
+        font-size: 22px;
+    }
+    .week-day > span:first-child {
+        font-size: 11px;
+    }
+    .week-day .day-marker {
+        font-size: 11px;
+    }
+    .day-heading {
+        padding: 19px 15px 16px;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+    .day-heading h2 {
+        font-size: 12px;
+    }
+    .day-heading > div > span {
+        font-size: 11px;
+    }
+    .appointments-list {
+        padding: 0 12px 18px;
+    }
+    .appointment-row {
+        gap: 8px;
+    }
+    .appointment-time {
+        width: 53px;
+        padding-top: 20px;
+    }
+    .appointment-time time {
+        font-size: 11px;
+    }
+    .appointment-time > span {
+        font-size: 11px;
+    }
+    .appointment-card {
+        padding: 13px 10px 0;
+        border-left-width: 2px;
+    }
+    .appointment-top {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .appointment-card h3 {
+        font-size: 13px;
+    }
+    .duration {
+        font-size: 11px;
+    }
+    .customer > div > span {
+        font-size: 11px;
+    }
+    .customer-avatar {
+        display: none;
+    }
+    .customer {
+        margin: 12px 0;
+    }
+    .appointment-footer {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    .sync-status {
+        font-size: 11px;
+    }
+    .appointment-actions {
+        margin-left: auto;
+    }
+    .appointment-calendar {
+        font-size: 11px;
+    }
+    .sidebar.mobile-open {
+        grid-template-columns: 1fr;
+        padding: 20px 35px;
+        gap: 25px;
+    }
+    .month-picker {
+        width: 100%;
+        max-width: 290px;
+        margin: auto;
+    }
+    .month-dates button {
+        width: 100%;
+        height: 34px;
+    }
+    .calendar-panel {
+        border-top: 1px solid var(--line);
+        padding-top: 22px;
+    }
+    .demo-note {
+        margin-top: 18px;
+    }
+    .dialog {
+        padding: 22px 18px;
+    }
+    .dialog-heading h2 {
+        font-size: 21px;
+    }
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .form-row.three {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 12px;
+    }
+    .form-row.three .field:first-child {
+        grid-column: 1 / -1;
+    }
+    .form-footer .button {
+        font-size: 11px;
+        padding: 10px 13px;
+    }
+    .field input,
+    .field select {
+        font-size: 16px;
+    }
+    .dialog .field-hint {
+        font-size: 11px;
+    }
+    .empty-state {
+        min-height: 300px;
+        padding: 25px 15px;
+    }
+    .empty-state h3 {
+        font-size: 18px;
+    }
+    .notice {
+        font-size: 11px;
+        margin-top: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .page-heading {
+        flex-wrap: wrap;
+    }
+    .new-appointment {
+        margin-top: 0;
+    }
+    .topbar-user {
+        gap: 4px;
+    }
+}
+
+.navigation-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--blue);
+    z-index: 100;
+}
+
+@media (max-width: 480px) {
+    .topbar .brand {
+        font-size: 23px;
+        letter-spacing: -1px;
+        gap: 7px;
+    }
+}

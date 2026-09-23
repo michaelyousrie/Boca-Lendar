@@ -1,3 +1,8 @@
-:root {
-    font-family: sans-serif;
-}
+@import './base.css';
+@import './layout.css';
+@import './sidebar.css';
+@import './schedule.css';
+@import './appointments.css';
+@import './forms.css';
+@import './auth.css';
+@import './responsive.css';

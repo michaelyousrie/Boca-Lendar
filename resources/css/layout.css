@@ -1,0 +1,94 @@
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+.nav-rail {
+    width: 72px;
+    flex-shrink: 0;
+    background: var(--blue);
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 30px;
+    padding: 24px 10px;
+    position: fixed;
+    inset: 0 auto 0 0;
+}
+.rail-logo {
+    color: white;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -3px;
+    line-height: 1;
+    padding-right: 3px;
+}
+.rail-link {
+    color: white;
+    width: 46px;
+    height: 46px;
+    border: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: transparent;
+}
+.rail-link.active {
+    background: #ffffff24;
+}
+.rail-link:hover {
+    background: #ffffff38;
+}
+.rail-link:focus-visible {
+    outline-color: white;
+}
+.rail-spacer {
+    flex: 1;
+}
+.app-body {
+    margin-left: 72px;
+    width: calc(100% - 72px);
+}
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    height: 85px;
+    background: #fff;
+    padding: 0 34px;
+    border-bottom: 1px solid var(--line);
+}
+.topbar-brand,
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+}
+.user-name {
+    font-weight: 600;
+    font-size: 12px;
+}
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #e7effb;
+    color: #38547d;
+    font-size: 13px;
+    font-weight: 700;
+}
+.workspace {
+    display: flex;
+    min-height: calc(100vh - 85px);
+}
+.sidebar {
+    width: 280px;
+    background: #fff;
+    border-right: 1px solid var(--line);
+    flex-shrink: 0;
+    padding: 32px 25px;
+    display: flex;
+    flex-direction: column;
+}

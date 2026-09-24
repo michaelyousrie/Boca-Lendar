@@ -14,7 +14,7 @@ class BookAppointment
 {
     public function handle(User $user, array $data): Appointment
     {
-        $data['calendar_id'] = $data['calendar_id'] ?? null;
+        $data['calendar_id'] ??= null;
         $data['duration'] = (int) $data['duration'];
         $data['all_day'] = (bool) ($data['all_day'] ?? false);
         ksort($data);

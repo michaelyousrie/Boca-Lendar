@@ -94,4 +94,4 @@ Each user can connect one Google account. Creating recurring appointments, invit
 
 ## Made with <3 by Michael x Codex
 
-Codex assisted Michael Yousrie with implementation, UI, tests and documentation. The [frontend-design skill](https://openskills.cc/skills/anthropics-skills-frontend-design) helped shape the visual direction.
+Codex assisted Michael Yousrie with UI, tests and documentation. The [frontend-design skill](https://openskills.cc/skills/anthropics-skills-frontend-design) helped shape the visual direction.

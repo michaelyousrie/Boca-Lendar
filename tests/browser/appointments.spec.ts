@@ -97,7 +97,7 @@ test('register, book locally, reject a conflict, cancel immediately and sign out
     const appointment = page.getByRole('article', { name: 'Discovery session', exact: true });
     await expect(appointment).toContainText('Saved locally');
     if (isMobile) await page.getByRole('button', { name: 'Calendars & dates' }).click();
-    await expect(page.getByRole('heading', { name: 'Google Account' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Google Calendar' })).toBeVisible();
     await page
         .getByRole('region', { name: 'Upcoming Events' })
         .getByRole('button', { name: /Discovery session/ })

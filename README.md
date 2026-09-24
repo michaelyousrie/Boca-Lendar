@@ -4,6 +4,10 @@ An appointment booking app built with Laravel 13, Inertia 2, React 19, TypeScrip
 
 ![The appointment workspace](docs/workspace.png)
 
+## Review the hosted app
+
+Open [bocalendar.michaelyousrie.com](https://bocalendar.michaelyousrie.com) and register your own account. The server already has the Google OAuth credentials. To connect Google Calendar, your Google account must be on the app's test-user list; ask Michael to add it if needed. No local setup or environment variables are required to use the hosted app.
+
 ## Run locally
 
 Requires PHP 8.4+ with `pdo_pgsql`, Composer 2, Node.js 22.13+ and Docker Compose. Only PostgreSQL runs in Docker.
@@ -24,7 +28,7 @@ Open **http://127.0.0.1:2017**. Port `2017` is a nod to [Boca Pro's founding yea
 
 ## Google Calendar
 
-To make things simpler, Michael will share his `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REDIRECT_URI` env variables alongside a reviewer email privately to make it not necessary to create a cloud project yourself.
+The hosted app is the quickest way to try Google Calendar integration. To run the app locally with Google, configure your own credentials using the steps below or request the OAuth settings from Michael privately.
 
 ### Or, create a cloud project following these instructions:
 

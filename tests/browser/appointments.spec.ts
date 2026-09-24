@@ -474,6 +474,7 @@ test('cancels an imported appointment locally and retries failed Google removal'
         fullPage: true,
     });
     await meeting.getByRole('button', { name: 'Retry sync' }).click();
+    await expect(meeting).toContainText('Removing from Google');
     googleFixture('sync');
     await expect(meeting).toContainText('Removed from Google');
     await expect(page.getByRole('article', { name: 'Team day off' })).toBeVisible();

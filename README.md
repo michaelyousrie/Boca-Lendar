@@ -24,6 +24,10 @@ Open **http://127.0.0.1:2017**. Port `2017` is a nod to [Boca Pro's founding yea
 
 ## Google Calendar
 
+To make things simpler, Michael will share his `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REDIRECT_URI` env variables alongside a reviewer email privately to make it not necessary to create a cloud project yourself.
+
+### Or, create a cloud project following these instructions:
+
 1. Create a Google Cloud project and enable **Google Calendar API**.
 2. In **Google Auth Platform**, configure Branding, choose **External / Testing**, and add your Google account under **Audience > Test users**.
 3. Under **Data Access**, add `openid`, `userinfo.email`, `userinfo.profile`, `calendar.calendarlist.readonly` and `calendar.events`. All except `openid` use the `https://www.googleapis.com/auth/` prefix.

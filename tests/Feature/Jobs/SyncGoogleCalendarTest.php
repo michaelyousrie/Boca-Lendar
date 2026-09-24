@@ -42,7 +42,7 @@ class SyncGoogleCalendarTest extends TestCase
         return ['id' => $id, 'summary' => 'New title', 'start' => ['date' => '2026-11-01'], 'end' => ['date' => '2026-11-02']];
     }
 
-    public function test_first_import_and_new_year_import_are_bounded_to_the_calendar_year(): void
+    public function test_first_import_and_new_year_import_cover_the_full_booking_horizon(): void
     {
         $this->travelTo(now('UTC')->setDate(2026, 12, 31)->setTime(23, 30));
         $sync = $this->sync(['timezone' => 'Africa/Cairo', 'import_year' => 2026]);
@@ -50,11 +50,29 @@ class SyncGoogleCalendarTest extends TestCase
         Http::fake(['*/events?*' => Http::response(['items' => [$this->event()], 'nextSyncToken' => 'new-token']),
             '*/events/*' => Http::response([], 404), '*/users/me/calendarList/*' => Http::response(['accessRole' => 'owner'])]);
         $this->runJob($sync);
-        $this->assertSame(2027, $sync->fresh()->import_year);
+        $this->assertSame(2029, $sync->fresh()->import_year);
         $this->assertSame('new-token', $sync->fresh()->sync_token);
         $this->assertSame(['new'], Appointment::where('status', 'scheduled')->whereNotNull('google_event_id')->pluck('google_event_id')->all());
         $this->assertNull($sync->fresh()->request_token);
-        Http::assertSent(fn ($request) => ! isset($request['syncToken']) && ($request['timeMin'] ?? null) === '2026-01-01T00:00:00+02:00' && $request['timeMax'] === '2028-01-01T00:00:00+02:00');
+        Http::assertSent(fn ($request) => ! isset($request['syncToken']) && ($request['timeMin'] ?? null) === '2026-01-01T00:00:00+02:00' && $request['timeMax'] === '2030-01-01T00:00:00+02:00');
+    }
+
+    public function test_an_existing_one_year_sync_token_is_replaced_with_an_import_covering_the_booking_horizon(): void
+    {
+        $this->travelTo(now('UTC')->setDate(2026, 9, 24));
+        $sync = $this->sync(['import_year' => 2026]);
+        $event = ['id' => 'future-event', 'summary' => 'Future appointment',
+            'start' => ['date' => '2028-03-01'], 'end' => ['date' => '2028-03-02']];
+        Http::fake(['*/events?*' => fn ($request) => Http::response([
+            'items' => ! isset($request['syncToken']) && ($request['timeMax'] ?? null) === '2029-01-01T00:00:00+00:00' ? [$event] : [],
+            'nextSyncToken' => 'expanded-token',
+        ])]);
+
+        $this->runJob($sync);
+
+        $this->assertDatabaseHas('appointments', ['google_event_id' => 'future-event', 'booking_calendar_id' => $sync->connection->selected_calendar_id]);
+        $this->assertSame(2028, $sync->fresh()->import_year);
+        $this->assertSame('expanded-token', $sync->fresh()->sync_token);
     }
 
     public function test_incremental_sync_upserts_changes_removes_tombstones_and_keeps_unchanged_events(): void
@@ -71,7 +89,7 @@ class SyncGoogleCalendarTest extends TestCase
         Http::assertSent(fn ($request) => $request['syncToken'] === 'saved-token' && ! isset($request['timeMin']) && ! isset($request['timeMax']) && ! isset($request['orderBy']));
     }
 
-    public function test_a_new_connection_imports_only_this_year_and_google_restores_reactivate_bookings(): void
+    public function test_a_new_connection_imports_the_booking_horizon_and_google_restores_reactivate_bookings(): void
     {
         $this->travelTo(now('UTC')->setDate(2026, 9, 23));
         $sync = $this->sync(['sync_token' => null, 'import_year' => null]);
@@ -80,8 +98,8 @@ class SyncGoogleCalendarTest extends TestCase
         $this->runJob($sync);
         $this->assertSame('scheduled', $appointment->fresh()->status);
         $this->assertTrue($appointment->fresh()->holds_slot);
-        $this->assertSame(2026, $sync->fresh()->import_year);
-        Http::assertSent(fn ($request) => ($request['timeMin'] ?? null) === '2026-01-01T00:00:00+00:00' && $request['timeMax'] === '2027-01-01T00:00:00+00:00');
+        $this->assertSame(2028, $sync->fresh()->import_year);
+        Http::assertSent(fn ($request) => ($request['timeMin'] ?? null) === '2026-01-01T00:00:00+00:00' && $request['timeMax'] === '2029-01-01T00:00:00+00:00');
     }
 
     public function test_empty_incremental_sync_preserves_events_and_advances_the_token(): void

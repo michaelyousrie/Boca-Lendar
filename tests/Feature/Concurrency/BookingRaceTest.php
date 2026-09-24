@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Concurrency;
 
+use App\Actions\BookAppointment;
 use App\Models\Appointment;
 use App\Models\BookingCalendar;
 use App\Models\CalendarConnection;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -34,6 +36,38 @@ class BookingRaceTest extends TestCase
 
         $this->assertSame(['reserved', 'reserved'], array_column($results, 'status'));
         $this->assertSame($results[0]['id'], $results[1]['id']);
+        $this->assertDatabaseCount('appointments', 1);
+    }
+
+    public function test_replays_a_request_committed_after_its_initial_duplicate_lookup(): void
+    {
+        $connection = CalendarConnection::factory()->create();
+        $user = User::findOrFail($connection->user_id);
+        $booking = [
+            'calendar_id' => $connection->calendar->external_id,
+            'request_key' => (string) Str::uuid(),
+            'title' => 'Concurrent booking', 'customer_name' => 'Sam', 'customer_email' => 'sam@example.com',
+            'date' => now()->addDay()->toDateString(), 'start_time' => '12:00', 'timezone' => 'UTC', 'duration' => 30,
+        ];
+        $payload = json_encode(['user_id' => $user->id, 'booking' => $booking], JSON_THROW_ON_ERROR);
+        $process = new Process([PHP_BINARY, base_path('tests/Fixtures/book.php'), $payload], base_path(), $this->environment());
+        $process->setTimeout(10);
+        $committedId = null;
+        CalendarConnection::retrieved(function (CalendarConnection $retrieved) use ($connection, $process, &$committedId): void {
+            if ($retrieved->id !== $connection->id || $committedId !== null) {
+                return;
+            }
+
+            $process->run();
+            $this->assertTrue($process->isSuccessful(), $process->getErrorOutput());
+            $result = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+            $this->assertSame('reserved', $result['status']);
+            $committedId = $result['id'];
+        });
+
+        $appointment = app(BookAppointment::class)->handle($user, $booking);
+
+        $this->assertSame($committedId, $appointment->id);
         $this->assertDatabaseCount('appointments', 1);
     }
 

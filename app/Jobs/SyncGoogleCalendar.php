@@ -45,15 +45,16 @@ class SyncGoogleCalendar implements ShouldQueue
         ]);
         $owned = Appointment::where('calendar_connection_id', $connection->id)->where('user_id', $connection->user_id)->where('booking_calendar_id', $calendar->id);
         $year = CarbonImmutable::now($sync->timezone)->year;
+        $importThroughYear = $year + 2;
         $start = CarbonImmutable::create($year, 1, 1, 0, 0, 0, $sync->timezone);
-        $end = $start->addYear();
+        $end = $start->addYears(3);
         $range = (clone $owned)->selectRaw('min(starts_at) as first_start, max(ends_at) as last_end')->first();
         if ($range->first_start) {
             $start = $start->min(CarbonImmutable::parse($range->first_start)->setTimezone($sync->timezone)->startOfYear());
             $end = $end->max(CarbonImmutable::parse($range->last_end)->subMicrosecond()->setTimezone($sync->timezone)->startOfYear()->addYear());
         }
         try {
-            $changes = $provider->changes($connection, $sync->calendar_id, $sync->import_year === $year ? $sync->sync_token : null, $start, $end);
+            $changes = $provider->changes($connection, $sync->calendar_id, $sync->import_year === $importThroughYear ? $sync->sync_token : null, $start, $end);
             $ids = [...array_column($changes['events'], 'id'), ...$changes['deleted']];
             $series = [...$changes['series'], ...$changes['deleted'], ...array_column($changes['events'], 'id')];
             $appointments = (clone $owned)->with(['calendar', 'connection'])
@@ -74,7 +75,7 @@ class SyncGoogleCalendar implements ShouldQueue
                     }
                 }
             }
-            DB::transaction(function () use ($sync, $connection, $calendar, $changes, $events, $appointments, $year) {
+            DB::transaction(function () use ($sync, $connection, $calendar, $changes, $events, $appointments, $importThroughYear) {
                 BookingCalendar::whereKey($calendar->id)->lockForUpdate()->firstOrFail();
                 $locked = Appointment::whereIn('id', $appointments->pluck('id'))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
                 $current = GoogleCalendarSync::whereKey($sync->id)->where('request_token', $this->requestToken)->lockForUpdate()->first();
@@ -120,7 +121,7 @@ class SyncGoogleCalendar implements ShouldQueue
                 foreach (array_chunk($new, 500) as $batch) {
                     Appointment::insert($batch);
                 }
-                $current->update(['sync_token' => $changes['sync_token'], 'import_year' => $year, 'request_token' => null, 'synced_at' => now(), 'sync_error' => null]);
+                $current->update(['sync_token' => $changes['sync_token'], 'import_year' => $importThroughYear, 'request_token' => null, 'synced_at' => now(), 'sync_error' => null]);
             });
         } catch (CalendarException $exception) {
             $this->finish($exception->getMessage());

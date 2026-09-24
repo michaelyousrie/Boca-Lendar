@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Appointment;
+use App\Models\BookingCalendar;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -19,17 +20,21 @@ class SyncExistingAppointment
 
         try {
             return DB::transaction(function () use ($appointment, $connection, $calendarId) {
+                $calendar = $connection->resolveCalendar($calendarId);
+                BookingCalendar::whereKey($calendar->id)->lockForUpdate()->firstOrFail();
                 $locked = Appointment::whereKey($appointment->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'cancelled') {
                     throw ValidationException::withMessages(['calendar_id' => 'Cancelled appointments cannot be sent to Google.']);
                 }
-                $calendar = $connection->resolveCalendar($calendarId);
                 if ($locked->calendar_connection_id) {
                     if ($locked->booking_calendar_id !== $calendar->id) {
                         throw ValidationException::withMessages(['calendar_id' => 'This appointment already has a Google destination.']);
                     }
 
                     return $locked;
+                }
+                if (Appointment::conflictingImported($calendar->id, $locked->starts_at, $locked->ends_at)->exists()) {
+                    throw ValidationException::withMessages(['calendar_id' => 'That Google calendar already has an event at this time. Your appointment is still saved locally.']);
                 }
                 $locked->update([
                     'calendar_connection_id' => $connection->id, 'booking_calendar_id' => $calendar->id,

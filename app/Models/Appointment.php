@@ -48,6 +48,20 @@ class Appointment extends Model
                 ->whereRaw('(ends_at AT TIME ZONE appointments.timezone)::date > ?::date', [$start->toDateString()])));
     }
 
+    public function scopeConflictingImported(Builder $query, int $calendarId, CarbonImmutable $start, CarbonImmutable $end, ?string $exceptId = null): void
+    {
+        $query->where('booking_calendar_id', $calendarId)
+            ->where('conflict_checked', false)
+            ->where(fn (Builder $query) => $query->where('status', 'scheduled')
+                ->orWhere(fn (Builder $query) => $query->where('status', 'cancelled')->whereIn('sync_status', ['pending', 'failed'])))
+            ->where('starts_at', '<', $end)
+            ->where('ends_at', '>', $start);
+
+        if ($exceptId !== null) {
+            $query->whereKeyNot($exceptId);
+        }
+    }
+
     public function displayStart(string $timezone): CarbonImmutable
     {
         return $this->all_day ? CarbonImmutable::parse($this->starts_at->setTimezone($this->timezone)->toDateString(), $timezone)

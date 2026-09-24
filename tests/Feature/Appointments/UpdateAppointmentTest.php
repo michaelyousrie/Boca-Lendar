@@ -112,6 +112,24 @@ class UpdateAppointmentTest extends TestCase
         $this->post('/appointments/'.$appointment->id.'/update', $this->data($appointment, ['start_time' => '11:00']))->assertSessionHasNoErrors();
     }
 
+    public function test_edit_rejects_a_known_imported_google_event(): void
+    {
+        Queue::fake([SyncAppointment::class]);
+        $appointment = Appointment::factory()->create()->fresh();
+        Appointment::factory()->imported()->create([
+            'calendar_connection_id' => $appointment->calendar_connection_id,
+            'starts_at' => '2026-11-02 08:15:00',
+            'ends_at' => '2026-11-02 09:15:00',
+        ]);
+
+        $this->actingAs(User::findOrFail($appointment->user_id))
+            ->post('/appointments/'.$appointment->id.'/update', $this->data($appointment))
+            ->assertSessionHasErrors('start_time');
+
+        $this->assertSame($appointment->starts_at->timestamp, $appointment->fresh()->starts_at->timestamp);
+        Queue::assertNothingPushed();
+    }
+
     public function test_background_delivery_does_not_invalidate_an_open_form_and_edits_can_overlap_their_old_slot(): void
     {
         Queue::fake([SyncAppointment::class]);

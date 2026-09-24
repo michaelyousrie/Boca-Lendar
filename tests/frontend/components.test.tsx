@@ -192,11 +192,17 @@ describe('booking form', () => {
                 start_time: 'Already reserved',
                 request_key: 'Used',
                 calendar_id: 'Reconnect',
+                timezone: 'Choose an available timezone',
             }),
         );
         expect(screen.getByText('Already reserved')).toBeVisible();
         expect(screen.getByText('Used')).toBeVisible();
         expect(screen.getByText('Reconnect')).toBeVisible();
+        expect(screen.getByText('Choose an available timezone')).toBeVisible();
+        expect(screen.getByRole('combobox', { name: 'Appointment timezone' })).toHaveAttribute(
+            'aria-describedby',
+            'timezone-error',
+        );
         expect(screen.getByLabelText('Start time')).toHaveFocus();
         act(() => callbacks.onStart({}));
         expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled();

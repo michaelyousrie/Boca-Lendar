@@ -33,6 +33,12 @@ class BookAppointment
             return DB::transaction(function () use ($user, $data, $hash, $connection) {
                 $calendar = $connection ? $connection->resolveCalendar($data['calendar_id']) : BookingCalendar::localFor($user);
                 [$start, $end] = BookingTime::period($data);
+                if ($connection) {
+                    BookingCalendar::whereKey($calendar->id)->lockForUpdate()->firstOrFail();
+                    if (Appointment::conflictingImported($calendar->id, $start, $end)->exists()) {
+                        throw ValidationException::withMessages([! empty($data['all_day']) ? 'date' : 'start_time' => 'This calendar already has an event at that time. Choose another slot.']);
+                    }
+                }
                 $appointment = Appointment::create([
                     'user_id' => $user->id,
                     'calendar_connection_id' => $connection?->id,

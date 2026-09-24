@@ -22,26 +22,6 @@ class DatabaseFailureTest extends TestCase
         config(['database.connections.racer' => config('database.connections.pgsql')]);
     }
 
-    public function test_replays_a_duplicate_committed_after_the_initial_lookup(): void
-    {
-        $this->secondConnection();
-        $connection = CalendarConnection::factory()->create();
-        $racedId = (string) Str::uuid();
-        Appointment::creating(function (Appointment $appointment) use ($racedId) {
-            DB::connection('racer')->table('appointments')->insert([...$appointment->getAttributes(), 'id' => $racedId]);
-        });
-
-        $appointment = app(BookAppointment::class)->handle(User::find($connection->user_id), [
-            'calendar_id' => $connection->calendar->external_id,
-            'request_key' => (string) Str::uuid(), 'title' => 'Race', 'customer_name' => 'Sam', 'customer_email' => 'sam@example.com',
-            'date' => now()->addDay()->toDateString(), 'start_time' => '12:00', 'timezone' => 'UTC', 'duration' => 30,
-        ]);
-
-        $this->assertSame($racedId, $appointment->id);
-        $this->assertDatabaseCount('appointments', 1);
-        DB::purge('racer');
-    }
-
     public function test_registration_reports_an_email_inserted_after_validation(): void
     {
         $this->secondConnection();

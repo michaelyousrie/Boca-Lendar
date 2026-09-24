@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
-$data = json_decode(stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR);
+$data = json_decode($argv[1] ?? stream_get_contents(STDIN), true, flags: JSON_THROW_ON_ERROR);
 try {
     $appointment = app(BookAppointment::class)->handle(User::findOrFail($data['user_id']), $data['booking']);
     echo json_encode(['status' => 'reserved', 'id' => $appointment->id], JSON_THROW_ON_ERROR);

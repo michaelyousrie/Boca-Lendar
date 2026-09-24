@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Appointment;
+use App\Models\BookingCalendar;
 use App\Support\BookingTime;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -14,11 +15,17 @@ class UpdateAppointment
     {
         try {
             return DB::transaction(function () use ($appointment, $data) {
+                if ($appointment->calendar_connection_id) {
+                    BookingCalendar::whereKey($appointment->booking_calendar_id)->lockForUpdate()->firstOrFail();
+                }
                 $locked = Appointment::whereKey($appointment->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'cancelled' || ! hash_equals($locked->revision(), $data['revision'])) {
                     throw ValidationException::withMessages(['revision' => 'This appointment changed. Close the form and reopen it before editing.']);
                 }
                 [$start, $end] = BookingTime::period($data);
+                if ($locked->calendar_connection_id && Appointment::conflictingImported($locked->booking_calendar_id, $start, $end, $locked->id)->exists()) {
+                    throw ValidationException::withMessages([! empty($data['all_day']) ? 'date' : 'start_time' => 'This calendar already has an event at that time. Choose another slot.']);
+                }
                 $locked->update([
                     'title' => $data['title'], 'customer_name' => $data['customer_name'], 'customer_email' => $data['customer_email'],
                     'starts_at' => $start, 'ends_at' => $end, 'all_day' => (bool) ($data['all_day'] ?? false), 'holds_slot' => true, 'conflict_checked' => true, 'timezone' => $data['timezone'],

@@ -54,12 +54,12 @@ Inertia keeps routing, authentication and validation in Laravel. React handles t
 
 | Concern | Approach and reason |
 | --- | --- |
-| Concurrent bookings | A PostgreSQL exclusion constraint prevents overlapping reservations on the same calendar, even across users. Adjacent appointments are allowed. This avoids relying on a race-prone availability check. |
+| Concurrent bookings | A PostgreSQL exclusion constraint prevents overlapping app reservations on the same calendar, even across users. Before a booking, edit or local-to-Google sync, the app also checks known imported Google events. A calendar row lock serializes those checks with an import in progress. Adjacent appointments are allowed. |
 | Duplicate requests or jobs | Request keys prevent duplicate bookings. Stable Google event IDs and ownership markers make retries safe; row locks serialize sync and cancellation. |
 | Slow or unavailable Google | Save the booking and sync intent together, then deliver through a database queue. Calls have timeouts, transient failures retry up to five attempts, and the scheduler recovers pending work. Failures remain visible without losing the booking. |
 | Incoming Google changes | One sync token per calendar and one row per event. Changes and the next token commit together after all pages succeed. Failed syncs keep existing data; overlapping jobs share one request. Expired tokens rebuild the imported range, and year rollover includes the new year. |
 | Editing | Reuse booking validation and conflict protection. Stale forms cannot overwrite newer edits. Google writes use [Google version checks](https://developers.google.com/workspace/calendar/api/guides/version-resources) and partial updates to preserve descriptions, guests and other event details. Customer fields round-trip through private event metadata. |
-| Cancellation | Local bookings release their slot immediately. Google bookings keep it reserved until removal is confirmed. Deleting in Google also cancels the linked booking and releases its slot on refresh. Missing events are checked individually, including calendar access, so moved events and permission failures do not count as deletions. |
+| Cancellation | Local bookings release their slot immediately. Google bookings keep it reserved until removal is confirmed; cancelled imports also block new bookings until Google confirms removal. Deleting in Google cancels the linked booking and releases its slot on refresh. Missing events are checked individually, including calendar access, so moved events and permission failures do not count as deletions. |
 | Timezones and past dates | Store UTC instants plus the booking's IANA timezone. Reject past times and DST gaps; ambiguous times require an explicit UTC choice. Overnight bookings appear on both dates. |
 | Credentials and access | Encrypt Google tokens, keep them out of browser props, and scope bookings to their owner. OAuth uses state, PKCE and a ten-minute expiry. Preserve `APP_KEY` when moving an existing database. |
 
@@ -88,9 +88,9 @@ PHP tests use `boca_test`. Playwright recreates `boca_e2e` and starts a server o
 
 ## Scope
 
-Conflict protection covers bookings made through Boca-lendar. Imports preserve Google's existing overlaps. Saving an appointment through Boca-lendar applies the same reservation checks to either source. Google changes also update linked Boca-lendar bookings; conflicting moves are reported instead of silently double-booking. External availability checks would be my next addition.
+Conflict protection covers Boca-lendar reservations and known imported Google events. Imports preserve existing overlaps between Google events. A Google event created or moved after the last sync can still conflict with a new booking. With more time, I would check live Google availability before saving and recheck before delivery, then show a conflict for a newly occupied slot. Google changes also update linked Boca-lendar bookings; conflicting moves are reported instead of silently double-booking.
 
-Each user can connect one Google account. Creating recurring appointments, invitations, reminders, password resets and email verification are outside this assessment.
+Each user can connect one Google account. Creating recurring appointments, invitations, reminders, password resets and email verification are outside this assessment. With more time, I would model recurring series and occurrence exceptions, queue idempotent invitation and reminder delivery, and add Laravel's password broker and email verification flows.
 
 ## Made with <3 by Michael x Codex
 

@@ -75,6 +75,7 @@ class SyncGoogleCalendar implements ShouldQueue
                 }
             }
             DB::transaction(function () use ($sync, $connection, $calendar, $changes, $events, $appointments, $year) {
+                BookingCalendar::whereKey($calendar->id)->lockForUpdate()->firstOrFail();
                 $locked = Appointment::whereIn('id', $appointments->pluck('id'))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
                 $current = GoogleCalendarSync::whereKey($sync->id)->where('request_token', $this->requestToken)->lockForUpdate()->first();
                 if (! $current) {

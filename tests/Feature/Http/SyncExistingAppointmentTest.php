@@ -73,6 +73,24 @@ class SyncExistingAppointmentTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    public function test_an_imported_google_event_blocks_syncing_a_local_appointment_to_its_calendar(): void
+    {
+        $appointment = Appointment::factory()->local()->create();
+        $connection = $this->connect($appointment);
+        Appointment::factory()->imported()->create([
+            'calendar_connection_id' => $connection->id,
+            'starts_at' => $appointment->starts_at,
+            'ends_at' => $appointment->ends_at,
+        ]);
+
+        $this->post('/appointments/'.$appointment->id.'/sync', ['calendar_id' => $connection->calendar->external_id])
+            ->assertSessionHasErrors('calendar_id');
+
+        $this->assertSame('local', $appointment->fresh()->sync_status);
+        $this->assertSame($appointment->booking_calendar_id, $appointment->fresh()->booking_calendar_id);
+        Queue::assertNothingPushed();
+    }
+
     public function test_a_linked_appointment_cannot_be_retargeted_to_another_calendar(): void
     {
         $appointment = Appointment::factory()->create(['sync_status' => 'synced']);

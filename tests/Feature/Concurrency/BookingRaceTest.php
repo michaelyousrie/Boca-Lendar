@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Concurrency;
 
+use App\Models\Appointment;
+use App\Models\BookingCalendar;
 use App\Models\CalendarConnection;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
@@ -35,46 +37,87 @@ class BookingRaceTest extends TestCase
         $this->assertDatabaseCount('appointments', 1);
     }
 
+    public function test_booking_waits_for_an_import_in_progress_before_checking_for_conflicts(): void
+    {
+        $connection = CalendarConnection::factory()->create();
+        $calendar = $connection->calendar;
+        $payload = json_encode(['user_id' => $connection->user_id, 'booking' => [
+            'calendar_id' => $calendar->external_id,
+            'request_key' => (string) Str::uuid(),
+            'title' => 'Concurrent booking', 'customer_name' => 'Sam', 'customer_email' => 'sam@example.com',
+            'date' => now('UTC')->addDay()->toDateString(), 'start_time' => '12:00', 'timezone' => 'UTC', 'duration' => 30,
+        ]], JSON_THROW_ON_ERROR);
+        $process = new Process([PHP_BINARY, base_path('tests/Fixtures/book.php'), $payload], base_path(), $this->environment());
+        $process->setTimeout(10);
+
+        DB::beginTransaction();
+        try {
+            $calendar->newQuery()->whereKey($calendar->id)->lockForUpdate()->firstOrFail();
+            Appointment::factory()->imported()->create([
+                'calendar_connection_id' => $connection->id,
+                'starts_at' => now('UTC')->addDay()->setTime(12, 0),
+                'ends_at' => now('UTC')->addDay()->setTime(13, 0),
+            ]);
+            $parentPid = DB::selectOne('SELECT pg_backend_pid() AS pid')->pid;
+            $process->start();
+            $deadline = microtime(true) + 5;
+            do {
+                DB::select('SELECT pg_stat_clear_snapshot()');
+                $blocked = DB::selectOne('SELECT count(*) AS total FROM pg_stat_activity WHERE ? = ANY(pg_blocking_pids(pid))', [$parentPid])->total;
+                if ($blocked > 0) {
+                    break;
+                }
+                usleep(10000);
+            } while (microtime(true) < $deadline);
+            $this->assertGreaterThan(0, $blocked, 'Booking must reach the calendar lock before the import commits. '.$process->getOutput().' '.$process->getErrorOutput());
+            DB::commit();
+            $process->wait();
+            $this->assertTrue($process->isSuccessful(), $process->getErrorOutput());
+            $this->assertSame('rejected', json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR)['status']);
+            $this->assertDatabaseCount('appointments', 1);
+        } finally {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            if ($process->isRunning()) {
+                $process->stop();
+            }
+        }
+    }
+
     private function race(array $userIds, bool $sameRequest): array
     {
-        DB::unprepared('CREATE FUNCTION hold_test_booking() RETURNS trigger AS $$ BEGIN PERFORM pg_advisory_xact_lock_shared(95023); RETURN NEW; END; $$ LANGUAGE plpgsql');
-        DB::unprepared('CREATE TRIGGER hold_test_booking BEFORE INSERT ON appointments FOR EACH ROW EXECUTE FUNCTION hold_test_booking()');
-        DB::select('SELECT pg_advisory_lock(95023)');
         $processes = [];
         $requestKey = (string) Str::uuid();
-        $environment = [
-            'APP_ENV' => 'testing', 'DB_CONNECTION' => 'pgsql', 'DB_URL' => '',
-            'DB_HOST' => config('database.connections.pgsql.host'),
-            'DB_PORT' => config('database.connections.pgsql.port'),
-            'DB_DATABASE' => config('database.connections.pgsql.database'),
-            'DB_USERNAME' => config('database.connections.pgsql.username'),
-            'DB_PASSWORD' => config('database.connections.pgsql.password'),
-        ];
+        $environment = $this->environment();
+        $calendar = CalendarConnection::where('user_id', $userIds[0])->firstOrFail()->calendar;
 
+        DB::beginTransaction();
         try {
+            BookingCalendar::whereKey($calendar->id)->lockForUpdate()->firstOrFail();
             foreach ($userIds as $userId) {
-                $process = new Process([PHP_BINARY, base_path('tests/Fixtures/book.php')], base_path(), $environment);
-                $process->setInput(json_encode(['user_id' => $userId, 'booking' => [
+                $payload = json_encode(['user_id' => $userId, 'booking' => [
                     'calendar_id' => CalendarConnection::where('user_id', $userId)->firstOrFail()->calendar->external_id,
                     'request_key' => $sameRequest ? $requestKey : (string) Str::uuid(),
                     'title' => 'Concurrent booking', 'customer_name' => 'Sam', 'customer_email' => 'sam@example.com',
                     'date' => now()->addDay()->toDateString(), 'start_time' => '12:00', 'timezone' => 'UTC', 'duration' => 30,
-                ]], JSON_THROW_ON_ERROR));
+                ]], JSON_THROW_ON_ERROR);
+                $process = new Process([PHP_BINARY, base_path('tests/Fixtures/book.php'), $payload], base_path(), $environment);
                 $process->setTimeout(10)->start();
                 $processes[] = $process;
             }
 
-            // Both inserts must reach the database before either is allowed to finish.
             $deadline = microtime(true) + 5;
             do {
-                $waiting = DB::selectOne("SELECT count(*) AS total FROM pg_locks WHERE locktype = 'advisory' AND objid = 95023 AND NOT granted")->total;
+                DB::select('SELECT pg_stat_clear_snapshot()');
+                $waiting = DB::selectOne("SELECT count(*) AS total FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND pid <> pg_backend_pid()")->total;
                 if ($waiting === 2) {
                     break;
                 }
                 usleep(10000);
             } while (microtime(true) < $deadline);
-            $this->assertSame(2, $waiting, 'Both worker processes must reach the insert barrier.');
-            DB::select('SELECT pg_advisory_unlock(95023)');
+            $this->assertSame(2, $waiting, 'Both worker processes must reach the calendar lock.');
+            DB::commit();
 
             return array_map(function (Process $process) {
                 $process->wait();
@@ -85,13 +128,26 @@ class BookingRaceTest extends TestCase
                 return json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
             }, $processes);
         } finally {
-            DB::select('SELECT pg_advisory_unlock(95023)');
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
             foreach ($processes as $process) {
                 if ($process->isRunning()) {
                     $process->stop();
                 }
             }
-            DB::unprepared('DROP FUNCTION hold_test_booking() CASCADE');
         }
+    }
+
+    private function environment(): array
+    {
+        return [
+            'APP_ENV' => 'testing', 'DB_CONNECTION' => 'pgsql', 'DB_URL' => '',
+            'DB_HOST' => config('database.connections.pgsql.host'),
+            'DB_PORT' => config('database.connections.pgsql.port'),
+            'DB_DATABASE' => config('database.connections.pgsql.database'),
+            'DB_USERNAME' => config('database.connections.pgsql.username'),
+            'DB_PASSWORD' => config('database.connections.pgsql.password'),
+        ];
     }
 }

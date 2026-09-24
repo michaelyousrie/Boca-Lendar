@@ -4,6 +4,7 @@ namespace Tests\Feature\Http;
 
 use App\Jobs\SyncAppointment;
 use App\Models\Appointment;
+use App\Models\BookingCalendar;
 use App\Models\CalendarConnection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -46,6 +47,72 @@ class CalendarSelectionTest extends TestCase
         $appointment = Appointment::sole();
         $this->assertSame('team', $appointment->calendar->external_id);
         $this->assertSame($appointment->booking_calendar_id, $connection->fresh()->selected_calendar_id);
+        Queue::assertPushed(SyncAppointment::class);
+    }
+
+    public function test_booking_rejects_a_slot_occupied_by_an_imported_google_event(): void
+    {
+        $connection = $this->connect();
+        $otherConnection = $this->connect();
+        $input = $this->input();
+        $start = now('UTC')->addDay()->setTime(14, 15);
+        $calendar = BookingCalendar::factory()->create(['external_id' => 'team', 'timezone' => 'UTC']);
+        Appointment::factory()->imported()->create([
+            'calendar_connection_id' => $otherConnection->id,
+            'booking_calendar_id' => $calendar->id,
+            'starts_at' => $start,
+            'ends_at' => $start->copy()->addHour(),
+        ]);
+
+        $this->actingAs(User::findOrFail($connection->user_id))->post('/appointments', $input)
+            ->assertSessionHasErrors('start_time');
+
+        $this->assertDatabaseCount('appointments', 1);
+        $this->assertNull($connection->fresh()->selected_calendar_id);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_booking_waits_for_an_imported_event_cancellation_to_finish_in_google(): void
+    {
+        $connection = $this->connect();
+        $calendar = BookingCalendar::factory()->create(['external_id' => 'team', 'timezone' => 'UTC']);
+        $start = now('UTC')->addDay()->setTime(14, 0);
+        $imported = Appointment::factory()->imported()->create([
+            'calendar_connection_id' => $connection->id,
+            'booking_calendar_id' => $calendar->id,
+            'starts_at' => $start,
+            'ends_at' => $start->copy()->addHour(),
+            'status' => 'cancelled',
+            'sync_status' => 'pending',
+        ]);
+
+        $this->actingAs(User::findOrFail($connection->user_id))->post('/appointments', $this->input())
+            ->assertSessionHasErrors('start_time');
+
+        $this->assertDatabaseCount('appointments', 1);
+        Queue::assertNothingPushed();
+
+        $imported->update(['sync_status' => 'synced']);
+        $this->post('/appointments', $this->input())->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('appointments', 2);
+    }
+
+    public function test_booking_can_follow_an_imported_event_without_overlapping_it(): void
+    {
+        $connection = $this->connect();
+        $calendar = BookingCalendar::factory()->create(['external_id' => 'team', 'timezone' => 'UTC']);
+        $start = now('UTC')->addDay()->setTime(13, 0);
+        Appointment::factory()->imported()->create([
+            'calendar_connection_id' => $connection->id,
+            'booking_calendar_id' => $calendar->id,
+            'starts_at' => $start,
+            'ends_at' => $start->copy()->addHour(),
+        ]);
+
+        $this->actingAs(User::findOrFail($connection->user_id))->post('/appointments', $this->input())
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('appointments', 2);
         Queue::assertPushed(SyncAppointment::class);
     }
 

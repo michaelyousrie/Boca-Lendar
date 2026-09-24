@@ -64,6 +64,33 @@ describe('searchable timezone select', () => {
         expect(input).toHaveValue('UTC');
     });
 
+    it('jumps to the first and last result with the keyboard', async () => {
+        render(<Picker />);
+        const input = screen.getByRole('combobox');
+        await userEvent.click(input);
+        await userEvent.keyboard('{Alt>}{End}{/Alt}');
+        expect(input).toHaveAttribute(
+            'aria-activedescendant',
+            screen.getByRole('option', { name: 'America/Argentina/Buenos Aires' }).id,
+        );
+        await userEvent.keyboard('{Alt>}{Home}{/Alt}{Enter}');
+        expect(input).toHaveValue('UTC');
+        expect(input).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('does not select a result while an input method is composing', async () => {
+        const onChange = vi.fn();
+        render(<Picker onChange={onChange} />);
+        const input = screen.getByRole('combobox');
+        await userEvent.click(input);
+        await userEvent.type(input, 'cairo');
+        fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
+        expect(input).toHaveAttribute('aria-expanded', 'true');
+        expect(onChange).not.toHaveBeenCalled();
+        await userEvent.keyboard('{Enter}');
+        expect(onChange).toHaveBeenCalledWith('Africa/Cairo');
+    });
+
     it('discards unselected searches on Escape, Tab and outside clicks', async () => {
         const onChange = vi.fn();
         const escape = vi.fn();
